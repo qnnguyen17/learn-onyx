@@ -48,6 +48,11 @@
 
 ;; <<< BEGIN FILL ME IN FOR log-segments >>>
 
+(defn log-segment [event lifecycle]
+  (doseq [seg (:onyx.core/batch event)]
+    (send logger (fn [_] (println seg))))
+  {})
+
 ;; <<< END FILL ME IN >>>
 
 (defn inject-writer-ch [event lifecycle]
@@ -58,10 +63,16 @@
 
 ;; <<< BEGIN FILL ME IN FOR logger-lifecycle calls >>>
 
+(def logger-lifecycle
+  {:lifecycle/after-batch log-segment})
+
 ;; <<< END FILL ME IN >>>
 
 (defn build-lifecycles []
   [;; <<< BEGIN FILL ME IN FOR :times-three >>>
+   {:lifecycle/task :times-three
+    :lifecycle/calls ::logger-lifecycle
+    :onyx/doc "Logs the processed segment"}
 
    ;; <<< END FILL ME IN >>>
 

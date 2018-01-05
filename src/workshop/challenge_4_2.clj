@@ -48,6 +48,43 @@
 
 ;; <<< BEGIN FILL ME IN >>>
 
-(defn build-lifecycles [])
+(defn inject-writer-ch [event lifecycle]
+  {:core.async/chan (u/get-output-channel (:core.async/id lifecycle))})
 
-;; <<< END FILL ME IN >>>
+(def writer-lifecycle
+  {:lifecycle/before-task-start inject-writer-ch})
+
+(defn store-max [event lifecycle]
+  "Store the max encountered value in state"
+  (when-let [batch (seq (:onyx.core/batch event))]
+    (let [batch-max (apply max (map :n batch))]
+      (swap! state #(if (nil? %)
+                      batch-max
+                      (max batch-max %)))))
+  {})
+
+(def store-max-lifecycle
+  {:lifecycle/after-batch store-max})
+
+(defn build-lifecycles []
+  [{:lifecycle/task :identity
+    :lifecycle/calls ::store-max-lifecycle
+    :onyx/doc "Stores the highest encountered value in state atom"}
+
+   {:lifecycle/task :read-segments
+    :lifecycle/calls :workshop.workshop-utils/in-calls
+    :core.async/id (java.util.UUID/randomUUID)
+    :onyx/doc "Injects the core.async reader channel"}
+
+   {:lifecycle/task :read-segments
+    :lifecycle/calls :onyx.plugin.core-async/reader-calls
+    :onyx/doc "core.async plugin base lifecycle"}
+
+   {:lifecycle/task :write-segments
+    :lifecycle/calls ::writer-lifecycle
+    :core.async/id (java.util.UUID/randomUUID)
+    :onyx/doc "Injects the core.async writer channel"}
+
+   {:lifecycle/task :write-segments
+    :lifecycle/calls :onyx.plugin.core-async/writer-calls
+    :onyx/doc "core.async plugin base lifecycle"}])
