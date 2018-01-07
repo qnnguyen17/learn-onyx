@@ -68,6 +68,16 @@
 
 ;; <<< BEGIN FILL ME IN >>>
 
-(def flow-conditions)
+(defn admin? [event old new all]
+  (= :admin (:status new)))
+
+(defn user? [event old new all]
+  (= :user (:status new)))
+
+(def flow-conditions
+  [{:flow/from :identity
+    :flow/to [:write-segments]
+    :flow/predicate [:or ::admin? ::user?]
+    :flow/doc "Write segments if admin or user"}])
 
 ;; <<< END FILL ME IN >>>

@@ -75,6 +75,19 @@
 
 ;; <<< BEGIN FILL ME IN >>>
 
-(def flow-conditions)
+(defn handle-error? [event segment exception _]
+  (println exception)
+  true)
+
+(defn add-error [event segment exception]
+  (assoc segment :error "Insufficient access level"))
+
+(def flow-conditions
+  [{:flow/from :process-user
+    :flow/to [:write-segments]
+    :flow/thrown-exception? true
+    :flow/predicate ::handle-error?
+    :flow/post-transform ::add-error
+    :flow/short-circuit? true}])
 
 ;; <<< END FILL ME IN >>>

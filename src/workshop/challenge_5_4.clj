@@ -86,7 +86,22 @@
 ;;; Flow conditions ;;;
 
 ;; <<< BEGIN FILL ME IN >>>
+(defn adult? [event old new _]
+  (>= (:age new) 18))
 
-(def flow-conditions)
+(defn child? [event old new _]
+  (< (:age new) 18))
+
+(def flow-conditions
+  [{:flow/from :identity
+    :flow/to [:children]
+    :flow/predicate ::child?
+    :flow/doc "Write to child output stream if child"
+    :flow/exclude-keys [:age]}
+   {:flow/from :identity
+    :flow/to [:adults]
+    :flow/predicate ::adult?
+    :flow/doc "Write to adult output stream if adult"
+    :flow/exclude-keys [:age]}])
 
 ;; <<< END FILL ME IN >>>
